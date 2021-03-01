@@ -1,2 +1,2 @@
 # JeecgBoot
-JeecgBoot vul&lt;=2.4
+Vulnerability,Impact version:<=2.4
